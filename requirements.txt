@@ -1,3 +1,3 @@
 Django
 psycopg2
-elasticsearch-dsl
+git+https://github.com/elastic/elasticsearch-dsl-py.git#egg=elasticsearch-dsl

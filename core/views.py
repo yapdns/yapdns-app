@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from .search import DnsRecord
 import json
 
@@ -19,10 +18,9 @@ def response_from_code(code):
     return JsonResponse(response, status=code)
 
 
-@csrf_exempt
 def create_record(request):
     if request.method != 'POST':
-        return response_from_code(200)
+        return response_from_code(400)
 
     body = json.loads(request.body)
     domain = body['domain']
@@ -34,4 +32,5 @@ def create_record(request):
 
     dns_record = DnsRecord(domain=domain, rtype=rtype, rdata=rdata, ttl=ttl, client=client)
     dns_record.save()
+
     return response_from_code(200)

@@ -12,17 +12,20 @@ response_map = {
     500: 'Invalid request'
 }
 
+
 def check_client_credentials(client_id, client_secret):
     try:
-        clients = Client.objects.filter(id=client_id, secret_key=client_secret)
+        Client.objects.filter(id=client_id, secret_key=client_secret)
     except:
         return False
     return True
 
+
 def client_auth(func):
+
     @wraps(func)
     def _decorator(request, *args, **kwargs):
-        if request.META.has_key('HTTP_AUTHORIZATION'):
+        if 'HTTP_AUTHORIZATION' in request.META:
             authmeth, auth = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
             if authmeth.lower() == 'basic':
                 auth = auth.strip().decode('base64')
@@ -42,21 +45,37 @@ def response_from_code(code):
     return JsonResponse(response, status=code)
 
 
+def build_record_from_dict(body):
+    if all(k not in body for k in ('domain', 'rtype', 'client', 'rdata', 'timestamp')):
+        raise Exception
+
+    if body['rtype'] not in ['A', 'AAAA', 'SOA', 'NS', 'PTR', 'CNAME', 'MX', 'SRV']:
+        raise Exception
+
+    if 'ttl' in body and int(body['ttl']) < 0:
+        raise Exception
+
+    client = body['client']
+
+    if all(k not in client for k in ('service_type', 'ip')):
+        raise Exception
+
+    dns_record = DnsRecord(**body)
+    return dns_record
+
+
 @client_auth
 def create_record(request):
     if request.method != 'POST':
         return response_from_code(400)
 
     body = json.loads(request.body)
-    domain = body['domain']
-    rtype = body['rtype']
-    rdata = body['rdata']
-    ttl = body['ttl']
 
-    client = body['client']
-
-    dns_record = DnsRecord(domain=domain, rtype=rtype, rdata=rdata, ttl=ttl, client=client)
-    dns_record.save()
+    try:
+        dns_record = build_record_from_dict(body)
+        dns_record.save()
+    except Exception, e:
+        return response_from_code(400)
 
     return response_from_code(200)
 
@@ -69,14 +88,10 @@ def create_record_bulk(request):
     dns_records = []
     body = json.loads(request.body)
     for record in body:
-        domain = record['domain']
-        rtype = record['rtype']
-        rdata = record['rdata']
-        ttl = record['ttl']
-
-        client = record['client']
-
-        dns_record = DnsRecord(domain=domain, rtype=rtype, rdata=rdata, ttl=ttl, client=client)
+        try:
+            dns_record = build_record_from_dict(record)
+        except Exception:
+            return response_from_code(400)
         dns_records.append(dns_record)
 
     bulk(connections.get_connection(), (d.to_dict(True) for d in dns_records))

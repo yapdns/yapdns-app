@@ -14,6 +14,7 @@ class DnsRecord(DocType):
     rtype = String(index='not_analyzed')
     rdata = String(index='not_analyzed')
     ttl = Long(index='not_analyzed')
+    timestamp = Date(index='not_analyzed')
     client = Nested(
         doc_class=Client,
         properties={
@@ -21,7 +22,6 @@ class DnsRecord(DocType):
             'ip': Ip(index='not_analyzed')
         }
     )
-    created_at = Date()
 
 # create an index and register the doc types
 index = Index(settings.ES_INDEX)

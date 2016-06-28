@@ -13,6 +13,10 @@ response_map = {
 }
 
 
+class InvalidDnsRecord(Exception):
+    pass
+
+
 def check_client_credentials(client_id, client_secret):
     try:
         Client.objects.filter(id=client_id, secret_key=client_secret)
@@ -36,29 +40,31 @@ def client_auth(func):
     return _decorator
 
 
-def response_from_code(code):
+def response_from_code(code, message=None):
+    message = message if message else response_map[code]
     response = {
         'status': code,
-        'message': response_map[code]
+        'message': message
     }
 
     return JsonResponse(response, status=code)
 
 
 def build_record_from_dict(body):
-    if all(k not in body for k in ('domain', 'rtype', 'client', 'rdata', 'timestamp')):
-        raise Exception
+    required_fields = ('domain', 'rtype', 'client', 'rdata', 'timestamp')
+    if not all(k in body for k in required_fields):
+        raise InvalidDnsRecord('Required fields {} not present'.format(required_fields))
 
     if body['rtype'] not in ['A', 'AAAA', 'SOA', 'NS', 'PTR', 'CNAME', 'MX', 'SRV']:
-        raise Exception
+        raise InvalidDnsRecord('Invalid value for record type')
 
     if 'ttl' in body and int(body['ttl']) < 0:
-        raise Exception
+        raise InvalidDnsRecord('Invalid value for TTL')
 
     client = body['client']
-
-    if all(k not in client for k in ('service_type', 'ip')):
-        raise Exception
+    client_fields = ('service_type', 'ip')
+    if not all(k in client for k in client_fields):
+        raise InvalidDnsRecord('Required fields {} not present in client'.format(client_fields))
 
     dns_record = DnsRecord(**body)
     return dns_record
@@ -75,7 +81,7 @@ def create_record(request):
         dns_record = build_record_from_dict(body)
         dns_record.save()
     except Exception, e:
-        return response_from_code(400)
+        return response_from_code(400, str(e))
 
     return response_from_code(200)
 
@@ -90,8 +96,8 @@ def create_record_bulk(request):
     for record in body:
         try:
             dns_record = build_record_from_dict(record)
-        except Exception:
-            return response_from_code(400)
+        except Exception, e:
+            return response_from_code(400, str(e))
         dns_records.append(dns_record)
 
     bulk(connections.get_connection(), (d.to_dict(True) for d in dns_records))

@@ -10,15 +10,15 @@ class Client(InnerObjectWrapper):
 
 
 class DnsRecord(DocType):
-    domain = String()
-    rtype = String()
-    rdata = String()
-    ttl = Long()
+    domain = String(index='not_analyzed')
+    rtype = String(index='not_analyzed')
+    rdata = String(index='not_analyzed')
+    ttl = Long(index='not_analyzed')
     client = Nested(
         doc_class=Client,
         properties={
-            'service_type': String(),
-            'ip': Ip()
+            'service_type': String(index='not_analyzed'),
+            'ip': Ip(index='not_analyzed')
         }
     )
     created_at = Date()

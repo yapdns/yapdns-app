@@ -17,12 +17,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """
-            check if index exists
-                is the mapping same?
-                    override
-
-        """
         self.es = connections.get_connection()
         if options['override']:
             index.delete(ignore=404)

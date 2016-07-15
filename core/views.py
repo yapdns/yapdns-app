@@ -107,8 +107,9 @@ def create_record_bulk(request):
 
 
 def search_records(request):
+    domain = request.GET['domain']
     s = DnsRecord.search()
-    s = s.filter('term', rtype='A')
+    s = s.filter('term', domain=domain)
     results = s.execute()
 
     response = []

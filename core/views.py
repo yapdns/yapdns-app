@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.shortcuts import render
 from .search import DnsRecord
 from .models import Client
 from functools import wraps
@@ -122,3 +123,7 @@ def search_records(request):
             })
 
     return JsonResponse(response, safe=False)
+
+
+def home(request):
+    return render(request, 'core/index.html')

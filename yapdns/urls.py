@@ -18,6 +18,7 @@ from django.contrib import admin
 from core import views
 
 urlpatterns = [
+    url(r'^$', views.home, name='home'),
     url(r'^api/v1/dns$', views.create_record, name='api_create'),
     url(r'^api/v1/dns/search$', views.search_records, name='api_search'),
     url(r'^api/v1/dns/bulk$', views.create_record_bulk, name='api_create_bulk'),

@@ -103,3 +103,22 @@ def create_record_bulk(request):
     bulk(connections.get_connection(), (d.to_dict(True) for d in dns_records))
 
     return response_from_code(200)
+
+
+def search_records(request):
+    s = DnsRecord.search()
+    s = s.filter('term', rtype='A')
+    results = s.execute()
+
+    response = []
+
+    for record in results:
+        response.append({
+            'timestamp': record['timestamp'],
+            'domain': record['domain'],
+            'type': record['rtype'],
+            'data': record['rdata'],
+            # 'client': dict(record['client'])
+            })
+
+    return JsonResponse(response, safe=False)

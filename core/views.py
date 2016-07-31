@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from .search import DnsRecord
 from .models import Client
 from functools import wraps
@@ -71,6 +72,7 @@ def build_record_from_dict(body):
     return dns_record
 
 
+@csrf_exempt
 @client_auth
 def create_record(request):
     if request.method != 'POST':
@@ -86,7 +88,7 @@ def create_record(request):
 
     return response_from_code(200)
 
-
+@csrf_exempt
 @client_auth
 def create_record_bulk(request):
     if request.method != 'POST':

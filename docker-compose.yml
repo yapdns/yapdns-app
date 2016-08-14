@@ -4,10 +4,12 @@ services:
     image: postgres:latest
   es:
     image: elasticsearch:latest
-    command: elasticsearch
   web:
-    build: .
-    command: /usr/local/bin/gunicorn yapdns.wsgi:application -w 2 -b :8000
+    build: ./web/
+    command: gunicorn yapdns.wsgi:application -w 2 -b :8000
+    volumes:
+      - /usr/src/app
+      - /usr/src/app/static
     expose:
       - "8000"
     depends_on:

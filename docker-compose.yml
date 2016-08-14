@@ -6,10 +6,8 @@ services:
     image: elasticsearch:latest
   web:
     build: ./web/
-    command: gunicorn yapdns.wsgi:application -w 2 -b :8000
     volumes:
-      - /usr/src/app
-      - /usr/src/app/static
+      - web-data:/staticfiles
     expose:
       - "8000"
     depends_on:
@@ -20,9 +18,10 @@ services:
     build: ./nginx/
     ports:
       - "80:80"
-    volumes:
-      - /www/static
     volumes_from:
       - web
     links:
-      - web:web
+      - web
+volumes:
+    web-data:
+        driver: local

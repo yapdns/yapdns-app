@@ -4,17 +4,23 @@ services:
     image: postgres:latest
   es:
     image: elasticsearch:latest
-    command: elasticsearch -Des.network.host=0.0.0.0
-    ports:
-      - "9200:9200"
-      - "9300:9300"
+    command: elasticsearch
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/code
-    ports:
-      - "8000:8000"
+    command: /usr/local/bin/gunicorn yapdns.wsgi:application -w 2 -b :8000
+    expose:
+      - "8000"
     depends_on:
       - pg
       - es
+  nginx:
+    restart: always
+    build: ./nginx/
+    ports:
+      - "80:80"
+    volumes:
+      - /www/static
+    volumes_from:
+      - web
+    links:
+      - web:web

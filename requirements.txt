@@ -1,3 +1,4 @@
 Django
 psycopg2
 git+https://github.com/elastic/elasticsearch-dsl-py.git#egg=elasticsearch-dsl
+gunicorn==19.3.0

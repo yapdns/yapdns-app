@@ -1,0 +1,27 @@
+version: '2'
+services:
+  pg:
+    image: postgres:latest
+  es:
+    image: elasticsearch:latest
+  web:
+    build: ./web/
+    volumes:
+      - web-data:/staticfiles
+    expose:
+      - "8000"
+    depends_on:
+      - pg
+      - es
+  nginx:
+    restart: always
+    build: ./nginx/
+    ports:
+      - "80:80"
+    volumes_from:
+      - web
+    links:
+      - web
+volumes:
+    web-data:
+        driver: local

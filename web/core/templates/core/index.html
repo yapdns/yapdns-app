@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>YAPDNS Search</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container">
+  <div class="page-header">
+    <h1>YAPDNS Search</h1>
+  </div>
+  <div>
+    <form role="form" class="row">
+      <div class="form-group col-lg-6">
+        <label for="domain" class="sr-only">Domain:</label>
+        <input type="text" class="form-control input-lg" name="domain" id="domain" placeholder="microsoft.com" required>
+      </div>
+      <div class="col-lg-4">
+        <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+      </div>
+    </form>
+  </div>
+  <div class="results hidden">
+    <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Domain</th>
+        <th>Type</th>
+        <th>Data</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+  $(function(){
+      $('form').on('submit', function() {
+        var $results = $('.results');
+        var $tbody = $('table > tbody');
+        var domain = $('#domain').val();
+        $results.addClass('hidden');
+        $.get('/api/v1/dns/search?domain='+ domain, function(data) {
+          var tableHtml = '';
+          for(i = 0; i < data.length; i++) {
+            item = data[i];
+            tableHtml += '<tr><td>'+ item['timestamp'] +'</td><td>'+ item['domain'] +'</td><td>'+ item['type'] +'</td><td>'+ item['data'] +'</td></tr>';
+          }
+          $tbody.html(tableHtml);
+          $results.removeClass('hidden');
+        });
+        return false;
+      });
+  });
+</script>
+</body>
+</html>
